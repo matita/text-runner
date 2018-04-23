@@ -193,6 +193,10 @@
 
     cmd.focus()
 
+    document.body.onclick = function () {
+        cmd.focus()
+    }
+
     form.onsubmit = function (e) {
         e.preventDefault()
         var command = cmd.value.trim().toLowerCase()
@@ -308,7 +312,7 @@
 
         } else if (distance === 0) {
 
-            say('Zombies ate your brain. You didn\'t <span class="suggest">run</span> enough', 'fail')
+            say((zombies.length > 1 ? 'Zombies' : 'The zombie') + ' ate your brain. You didn\'t <span class="suggest">run</span> enough', 'fail')
             die()
 
         } else {
@@ -316,7 +320,9 @@
             var p = game.lastChild === zombieP ? zombieP : line()
             zombieP = p
             var distanceSpan = distance > 3 ? distance : '<span class="warning">' + distance + '</span>'
-            p.innerHTML = 'Zombies are ' + distanceSpan + ' meters behind you'
+            p.innerHTML = [(zombies.length == 1 ? 'The zombie is ' : 'Zombies are '), 
+                distanceSpan,
+                ' meter', (distance > 1 ? 's' : ''), ' behind you'].join('')
             scroll()
 
             interval = setTimeout(loop, 2000)
