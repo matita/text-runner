@@ -11,6 +11,8 @@
     var meters = 0
     var interval
     var item
+    var ammo
+    var weapon
     var record = window.localStorage ? +window.localStorage['text_runner_record'] || 0 : 0
     
     var startItem = {
@@ -23,7 +25,58 @@
 
     var defaultCommands = {}
 
-    var gameCommands = {}
+    var gameCommands = {
+        shoot: function () {
+            if (!weapon)
+                return say('You don\'t have any weapon', 'warning')
+            if (weapon.ammo <= 0)
+                return say('You don\'t have any ammo left, try to <span class="suggest">reload</span>', 'warning')
+
+            weapon.ammo--
+            var closestZombie = zombies.sort(function (z1, z2) { return z2.meters - z1.meters })[0]
+            if (!closestZombie)
+                return say('There is no zombie, you wasted a bullet')
+
+            var i = zombies.indexOf(closestZombie)
+            zombies.splice(i, 1)
+            if (!zombies.length)
+                return say('You killed the last zombie, you can take a breath', 'success')
+
+            say('You killed a zombie, there are ' + zombies.length + ' zombies left', 'success')
+        },
+
+        reload: function () {
+            if (!weapon)
+                return say('You don\'t have any weapon to reload', 'warning')
+            if (ammo <= 0)
+                return say('You don\'t have any ammo left')
+            
+            ammo--
+            weapon.ammo = 4
+            say('You reloaded your gun', 'success')
+        }
+    }
+
+    var lastGunAt = 0
+    var nextItems = {
+        zombie: function () {
+            var i = rand(0, 1)
+            console.log('next zombie', i)
+            if (i === 0)
+                return 'zombieLeft'
+            return 'zombieRight'
+        },
+
+        gun: function () {
+            if (meters - lastGunAt < 20 || ammo >= 2)
+                return 'floor'
+            if (weapon)
+                return 'ammo'
+            
+            lastGunAt = meters
+            return 'gun'
+        }
+    }
     
     var items = {
         start: {
@@ -34,7 +87,7 @@
         },
 
         floor: {
-            next: ['floor', 'floor', 'floor', 'floor', 'wall', 'wall', 'zombieRight', 'zombieLeft'],
+            next: ['floor', 'floor', 'floor', 'floor', 'wall', 'wall', nextItems.zombie, nextItems.gun],
             run: function () { step() },
             jump: function () { step() }
         }, 
@@ -101,6 +154,38 @@
                 say('You ran onto the zombie and it ate your brain. You had to dodge it going <span class="suggest">right</span>', 'fail'),
                 die()
             }
+        },
+
+        gun: {
+            description: 'You found a gun. You can <span class="suggest">grab</span> it or keep <span class="suggest">run</span>ning',
+            next: ['floor'],
+            grab: function () {
+                weapon = { ammo: 4 }
+                say('You took the gun, now you can <span class="suggest">shoot</span> the zombies', 'success')
+                step(0)
+            },
+            run: function () {
+                step()
+            },
+            jump: function () {
+                step()
+            }
+        },
+
+        ammo: {
+            description: 'You found ammo, you can <span class="suggest">grab</span> them or keep <span class="suggest">run</span>ning',
+            next: ['floor'],
+            grab: function () {
+                ammo++
+                say('You took ammo', 'success')
+                step(0)
+            },
+            run: function () {
+                step()
+            },
+            jump: function () {
+                step()
+            }
         }
     }
 
@@ -132,6 +217,8 @@
         isWaiting = false
         meters = 0
         zombies = []
+        weapon = null
+        ammo = 0
         startTime = Date.now()
 
         addZombie(-3)
@@ -167,8 +254,10 @@
         scroll()
     }
 
-    function step() {
-        meters++
+    function step(dist) {
+        if (typeof dist === 'undefined')
+            dist = 1
+        meters += dist
         
         var nextItemName = randItem(item.next)
         if (typeof nextItemName === 'function')
@@ -183,13 +272,13 @@
 
     
     function doCommand (text) {
-        var p = line('command-line')
+        var command = commands[text]
+        var p = line('command-line ' + (command ? '' : 'invalid'))
         p.innerText = text
         scroll()
 
-        if (commands[text])
-            commands[text]()
-        lastCommand = text
+        if (command)
+            command()
     }
 
     function addZombie(position) {
@@ -209,7 +298,15 @@
         })
         
         var distance = meters - maxPosition
-        if (distance === 0) {
+        if (!zombies.length) {
+
+            addZombie(meters - 3)
+            say('Another zombie arrived and started to chase you')
+            scroll()
+
+            interval = setTimeout(loop, 2000)
+
+        } else if (distance === 0) {
 
             say('Zombies ate your brain. You didn\'t <span class="suggest">run</span> enough', 'fail')
             die()

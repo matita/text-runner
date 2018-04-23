@@ -79,6 +79,10 @@ span.success {
 .command-line {
     text-align: right;
 }
+.command-line.invalid {
+    text-decoration: line-through;
+    opacity: .5;
+}
 
 .suggest {
     color: white;
