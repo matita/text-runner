@@ -16,6 +16,10 @@ html, body {
     flex-direction: column;
 }
 
+.spacer {
+    flex: 1;
+}
+
 #start {
     display: block;
     padding: 1em;
@@ -49,9 +53,28 @@ html, body {
 }
 
 .info { border-left: 5px solid #999; }
-.info.warning { border-color: #fc0; }
-.info.success { border-color: #228022; }
-.info.fail    { border-color: #d63d3d; }
+.info.warning { 
+    border-color: #e89f28;
+    /*color: #e89f28;
+    background-color: #6b371f;*/
+}
+.info.success { 
+    border-color: #70c12a;
+    /*color: #70c12a;
+    background-color: #2a4a25;*/
+}
+.info.fail    { 
+    border-color: #d63d3d; 
+    /*color: #d63d3d;
+    background-color: #56160f;*/
+}
+
+span.warning {
+    color: #e89f28;
+}
+span.success { 
+    color: #70c12a;
+}
 
 .command-line {
     text-align: right;
