@@ -42,7 +42,7 @@
             if (!zombies.length)
                 return say('You killed the last zombie, you can take a breath', 'success')
 
-            say('You killed a zombie, there are ' + zombies.length + ' zombies left', 'success')
+            say('You killed a zombie, there ' + (zombies.length == 1 ? 'is one zombie' : 'are ' + zombies.length + ' zombies') + ' left', 'success')
         },
 
         reload: function () {
