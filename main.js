@@ -11,6 +11,7 @@
     var meters = 0
     var interval
     var item
+    var record = window.localStorage ? +window.localStorage['text_runner_record'] || 0 : 0
     
     var startItem = {
         next: ['start'],
@@ -146,7 +147,20 @@
         cmd.value = ''
 
         var sec = Math.floor((Date.now() - startTime) / 1000)
-        say('You escaped for <span class="success">' + sec + '</span> seconds')
+        if (sec > record) {
+            record = sec
+            if (window.localStorage)
+                localStorage['text_runner_record'] = record
+        }
+        
+        var dieMessage = 'You escaped for <span class="success">' + sec + '</span> seconds'
+        if (record) {
+            if (record === sec)
+                dieMessage += '<br>This is your best time!'
+            else
+                dieMessage += '<br>Your best time is <span class="success">' + record + '</span> seconds'
+        }
+        say(dieMessage)
 
         game.appendChild(startBtn)
         isWaiting = true
